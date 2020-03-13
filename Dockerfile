@@ -3,6 +3,8 @@
 # DESCRIPTION: Basic Airflow container
 # BUILD: docker build --rm -t puckel/docker-airflow .
 # SOURCE: https://github.com/puckel/docker-airflow
+ARG CLOUD_SDK_VERSION=284.0.0
+FROM google/cloud-sdk:$CLOUD_SDK_VERSION as gcloud
 
 FROM python:3.7-slim-buster
 LABEL maintainer="Puckel_"
@@ -85,6 +87,11 @@ COPY config/airflow.cfg ${AIRFLOW_USER_HOME}/airflow.cfg
 RUN chown -R airflow: ${AIRFLOW_USER_HOME}
 
 EXPOSE 8080 5555 8793
+
+COPY --from=gcloud /usr/lib/google-cloud-sdk /usr/lib/google-cloud-sdk
+RUN ln -s /usr/lib/google-cloud-sdk/bin/gcloud /usr/bin/gcloud
+ENV PATH /google-cloud-sdk/bin:$PATH
+ENV CLOUDSDK_PYTHON=python3
 
 USER airflow
 WORKDIR ${AIRFLOW_USER_HOME}
